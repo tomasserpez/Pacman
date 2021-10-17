@@ -6,12 +6,17 @@ pygame.init()
 vec = pygame.math.Vector2
 
 ################################ CLASE PACMAN ###################################
+
 class pacman:
     def __init__(self):
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
         self.state = "inicio"
+        self.cell_width = WIDTH//28
+        self.cell_height = HEIGHT//30
+        
+        self.load()
         
     #Definimos la función para ejecutar la aplicación con un estado inicial para
     #que comience en la pantalla de inicio    
@@ -32,6 +37,7 @@ class pacman:
         pygame.quit()
         sys.exit()
 ############################## FUNCIONES DE AYUDA ###############################
+
     #Esta es la función encargada de imprimir en pantalla los textos centrados
     def draw_text(self, words, screen, position, size, color, font_name, center = False):
         font = pygame.font.SysFont(font_name, size)
@@ -41,8 +47,19 @@ class pacman:
             position[0] = position[0] - text_size[0]//2
             position[1] = position[1] - text_size[1]//2
         screen.blit(text,position)
+        
+    def load(self):
+        self.background = pygame.image.load('maze.png')
+        self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
+        
+    def draw_grid(self):
+        for x in range(WIDTH//self.cell_width):
+            pygame.draw.line(self.screen, GREY, (x*self.cell_width, 0),(x*self.cell_width,HEIGHT))
+        for x in range(HEIGHT//self.cell_height):
+            pygame.draw.line(self.screen, GREY, (0, x*self.cell_height),(WIDTH, x*self.cell_height))
 
 ############################## FUNCIONES INICIALES ##############################
+
     #Esta es la función que se encarga de decidir que hacer por cada evento
     #en la pantalla de inicio    
     def inicio_events(self):
@@ -78,5 +95,6 @@ class pacman:
         pass
     
     def juego_draw(self):
-        self.screen.fill(RED)
+        self.screen.blit(self.background, (0,0))
+        self.draw_grid()
         pygame.display.update()

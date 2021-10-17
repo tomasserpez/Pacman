@@ -1,10 +1,11 @@
 #Configuraciónes de pantalla
-WIDTH, HEIGHT = 448, 596
+WIDTH, HEIGHT = 560, 620
 FPS = 60
 
 # Configuración de color
 BLACK = (0,0,0)
 RED = (208,22,22)
+GREY = (170, 107, 107)
 
 # Configuración de fuente
 START_TEXT_SIZE = 16
