@@ -17,6 +17,7 @@ class pacman:
         self.cell_width = MAZE_WIDTH//28
         self.cell_height = MAZE_HEIGHT//30
         self.player = Player(self, PLAYER_STARTING_POSITION)
+        self.walls = []
         
         self.load()
         
@@ -51,16 +52,27 @@ class pacman:
         screen.blit(text,position)
         
     def load(self):
-        self.background = pygame.image.load('maze.png')
+        self.background = pygame.image.load('background.png')
         self.background = pygame.transform.scale(self.background, (MAZE_WIDTH, MAZE_HEIGHT))
+        
+        # Abrimos el archivo con las coordenadas de cada pared
+        #Creamos una lista en base a las coordenadas de las pared en formato vectorial
+        with open("walls.txt", 'r') as file:
+            for yindex, line in enumerate(file):
+                for xindex, char in enumerate(line):
+                    if char == "1":
+                        self.walls.append(vec(xindex,yindex))
         
     #Esta funcion nos va a servir para poder definir en un array que es cada seccion del mapa,
     #es decir, si es pared, camino o si hay una moneda.
     def draw_grid(self):
-        for x in range(WIDTH//self.cell_width):
-            pygame.draw.line(self.background, GREY, (x*self.cell_width, 0),(x*self.cell_width,HEIGHT))
-        for x in range(HEIGHT//self.cell_height):
-            pygame.draw.line(self.background, GREY, (0, x*self.cell_height),(WIDTH, x*self.cell_height))
+        # for x in range(WIDTH//self.cell_width):
+        #     pygame.draw.line(self.background, GREY, (x*self.cell_width, 0),(x*self.cell_width,HEIGHT))
+        # for x in range(HEIGHT//self.cell_height):
+        #     pygame.draw.line(self.background, GREY, (0, x*self.cell_height),(WIDTH, x*self.cell_height))
+            
+        for wall in self.walls:
+            pygame.draw.rect(self.background, (255,192,203),(wall.x*self.cell_width,wall.y*self.cell_height, self.cell_width, self.cell_height))
 
 ############################## FUNCIONES INICIALES ##############################
 
@@ -93,10 +105,20 @@ class pacman:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.player.move(vec(-1,0))
+                if event.key == pygame.K_RIGHT:
+                    self.player.move(vec(1,0))
+                if event.key == pygame.K_UP:
+                    self.player.move(vec(0,-1))
+                if event.key == pygame.K_DOWN:
+                    self.player.move(vec(0,1))
+                    
 
     
     def juego_update(self):
-        pass
+        self.player.update()
     
     def juego_draw(self):
         self.screen.fill(BLACK)
