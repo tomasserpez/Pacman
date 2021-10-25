@@ -1,7 +1,8 @@
 import pygame, sys
 from settings import *
 from player_class import *
-
+import random
+from enemy_class import *
 
 pygame.init()
 vec = pygame.math.Vector2
@@ -16,12 +17,14 @@ class pacman:
         self.state = "inicio"
         self.cell_width = MAZE_WIDTH//28
         self.cell_height = MAZE_HEIGHT//30
-        self.player = Player(self, PLAYER_STARTING_POSITION)
         self.walls = []
         self.coins = []
-        
+        self.enemies = []
+        self.enemy_position = []
+        self.player_starting_position = []
         self.load()
-        
+        self.player = Player(self, self.player_starting_position)
+        self.make_enemies()
     #Definimos la función para ejecutar la aplicación con un estado inicial para
     #que comience en la pantalla de inicio    
     def run(self):
@@ -58,13 +61,21 @@ class pacman:
         
         # Abrimos el archivo con las coordenadas de cada pared
         #Creamos una lista en base a las coordenadas de las pared en formato vectorial
-        with open("walls.txt", 'r') as file:
+        with open("walls{}.txt".format(random.randint(0,1)), 'r') as file:
             for yindex, line in enumerate(file):
                 for xindex, char in enumerate(line):
                     if char == "1":
                         self.walls.append(vec(xindex,yindex))
                     elif char == "C":
                         self.coins.append(vec(xindex,yindex))
+                    elif char == "P":
+                        self.player_starting_position = vec(xindex,yindex)
+                    elif char in ["2","3","4","5"]:
+                        self.enemy_position.append(vec(xindex,yindex))
+        
+    def make_enemies(self):
+        for index, position in enumerate(self.enemy_position):
+            self.enemies.append(Enemy(self,position, index))
         
     #Esta funcion nos va a servir para poder definir en un array que es cada seccion del mapa,
     #es decir, si es pared, camino o si hay una moneda.
@@ -128,6 +139,8 @@ class pacman:
     
     def juego_update(self):
         self.player.update()
+        for enemy in self.enemies:
+            enemy.update()
     
     def juego_draw(self):
         self.screen.fill(BLACK)
@@ -144,6 +157,8 @@ class pacman:
         
         #Dibujamos al jugador
         self.player.draw()
+        for enemy in self.enemies:
+            enemy.draw()
         pygame.display.update()
         
         
