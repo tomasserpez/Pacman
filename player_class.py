@@ -11,6 +11,7 @@ class Player:
         self.direction = vec(1,0)
         self.stored_direction = None
         self.able_to_move = True
+        self.current_score = 0
         #print(self.grid_position, self.pixel_position)
         
     
@@ -27,6 +28,9 @@ class Player:
         #Configuración de la grilla para referencial la posición del pixel
         self.grid_position[0] = (self.pixel_position[0]-TOP_BOTTOM_BUFFER+self.pacman.cell_width//2)//self.pacman.cell_width+1
         self.grid_position[1] = (self.pixel_position[1]-TOP_BOTTOM_BUFFER+self.pacman.cell_height//2)//self.pacman.cell_height+1
+        
+        if self.on_coin():
+            self.eat_coin()
 
     
     def draw(self):
@@ -53,3 +57,12 @@ class Player:
             if vec(self.grid_position+self.direction) == wall:
                 return False
         return True
+    
+    def on_coin(self):
+        if self.grid_position in self.pacman.coins:
+            return True
+        return False
+            
+    def eat_coin(self):
+        self.pacman.coins.remove(self.grid_position)
+        self.current_score += 1

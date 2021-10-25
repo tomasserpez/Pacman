@@ -18,6 +18,7 @@ class pacman:
         self.cell_height = MAZE_HEIGHT//30
         self.player = Player(self, PLAYER_STARTING_POSITION)
         self.walls = []
+        self.coins = []
         
         self.load()
         
@@ -62,18 +63,26 @@ class pacman:
                 for xindex, char in enumerate(line):
                     if char == "1":
                         self.walls.append(vec(xindex,yindex))
+                    elif char == "C":
+                        self.coins.append(vec(xindex,yindex))
         
     #Esta funcion nos va a servir para poder definir en un array que es cada seccion del mapa,
     #es decir, si es pared, camino o si hay una moneda.
     def draw_grid(self):
-        # for x in range(WIDTH//self.cell_width):
-        #     pygame.draw.line(self.background, GREY, (x*self.cell_width, 0),(x*self.cell_width,HEIGHT))
-        # for x in range(HEIGHT//self.cell_height):
-        #     pygame.draw.line(self.background, GREY, (0, x*self.cell_height),(WIDTH, x*self.cell_height))
-            
+        for x in range(WIDTH//self.cell_width):
+            pygame.draw.line(self.background, GREY, (x*self.cell_width, 0),(x*self.cell_width,HEIGHT))
+        for x in range(HEIGHT//self.cell_height):
+            pygame.draw.line(self.background, GREY, (0, x*self.cell_height),(WIDTH, x*self.cell_height))
+    def draw_map(self):
+        #DIBUJAMOS LAS PAREDES
         for wall in self.walls:
             pygame.draw.rect(self.background, (255,192,203),(wall.x*self.cell_width,wall.y*self.cell_height, self.cell_width, self.cell_height))
-
+        # for coin in self.coins:
+        #     pygame.draw.rect(self.background, (167,179,34),(coin.x*self.cell_width,coin.y*self.cell_height, self.cell_width, self.cell_height))
+    def draw_coins(self):
+        for coin in self.coins:
+            pygame.draw.circle(self.screen,(167,179,34),(int(coin.x*self.cell_width)+self.cell_width//2+TOP_BOTTOM_BUFFER//2,int(coin.y*self.cell_height)+self.cell_height//2+TOP_BOTTOM_BUFFER//2),5)
+    
 ############################## FUNCIONES INICIALES ##############################
 
     #Esta es la función que se encarga de decidir que hacer por cada evento
@@ -94,7 +103,7 @@ class pacman:
         self.draw_text('1  SOLO  JUGADOR', self.screen, [WIDTH//2, HEIGHT//2+50], START_TEXT_SIZE, (49, 176, 170), START_FONT, center = True)
         self.draw_text('Proyecto final', self.screen, [WIDTH//2, HEIGHT//2+150], START_TEXT_SIZE, (255, 255, 255), START_FONT, center = True)
         self.draw_text('Tomás Serpez', self.screen, [WIDTH//2, HEIGHT//2+170], START_TEXT_SIZE, (255, 255, 255), START_FONT, center = True)
-        self.draw_text('HIGH  SCORE', self.screen, [4,0], START_TEXT_SIZE, (255, 255, 255), START_FONT)
+        #self.draw_text('HIGH  SCORE', self.screen, [4,0], START_TEXT_SIZE, (255, 255, 255), START_FONT)
         pygame.display.update()
 
 
@@ -123,12 +132,18 @@ class pacman:
     def juego_draw(self):
         self.screen.fill(BLACK)
         self.screen.blit(self.background, (TOP_BOTTOM_BUFFER//2,TOP_BOTTOM_BUFFER//2))
+        self.draw_coins()
         #Dibujamos la grilla
-        self.draw_grid()
+        # self.draw_grid()
+        #Dibujamos el mapa
+        self.draw_map()
+        # self.draw_coins()
         #Textos
-        self.draw_text('CURRENT SCORE: 0', self.screen, [60,0], 18, WHITE, START_FONT, center=False)
-        self.draw_text('HIGH SCORE: 0', self.screen, [WIDTH//2+60,0], 18, WHITE, START_FONT, center=False)
+        self.draw_text('CURRENT SCORE: {}'.format(self.player.current_score), self.screen, [60,0], 18, WHITE, START_FONT, center=False)
+        # self.draw_text('HIGH SCORE: 0', self.screen, [WIDTH//2+60,0], 18, WHITE, START_FONT, center=False)
         
         #Dibujamos al jugador
         self.player.draw()
         pygame.display.update()
+        
+        
