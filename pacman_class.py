@@ -3,6 +3,7 @@ from settings import *
 from player_class import *
 import random
 from enemy_class import *
+import copy
 
 pygame.init()
 vec = pygame.math.Vector2
@@ -15,15 +16,15 @@ class pacman:
         self.clock = pygame.time.Clock()
         self.running = True
         self.state = "inicio"
-        self.cell_width = MAZE_WIDTH//28
-        self.cell_height = MAZE_HEIGHT//30
+        self.cell_width = MAZE_WIDTH//COLS
+        self.cell_height = MAZE_HEIGHT//ROWS
         self.walls = []
         self.coins = []
         self.enemies = []
         self.enemy_position = []
         self.player_starting_position = []
         self.load()
-        self.player = Player(self, self.player_starting_position)
+        self.player = Player(self, vec(self.player_starting_position))
         self.make_enemies()
     #Definimos la función para ejecutar la aplicación con un estado inicial para
     #que comience en la pantalla de inicio    
@@ -37,6 +38,14 @@ class pacman:
                 self.juego_events()
                 self.juego_update()
                 self.juego_draw()
+            elif self.state == 'game over':
+                self.game_over_events()
+                self.game_over_update()
+                self.game_over_draw()
+            elif self.state == 'win':
+                self.win_events()
+                self.win_update()
+                self.win_draw()
             else:
                 self.running = False
             self.clock.tick(FPS)
@@ -58,10 +67,14 @@ class pacman:
     def load(self):
         self.background = pygame.image.load('background.png')
         self.background = pygame.transform.scale(self.background, (MAZE_WIDTH, MAZE_HEIGHT))
-        
+        self.r = random.randint(1,255)
+        self.g = random.randint(1,255)
+        self.b = random.randint(1,255)
         # Abrimos el archivo con las coordenadas de cada pared
         #Creamos una lista en base a las coordenadas de las pared en formato vectorial
         with open("walls{}.txt".format(random.randint(0,1)), 'r') as file:
+        #testwalls es un mapa de prueba para probar funcionalidad de victoria
+        #with open("testwalls.txt", 'r') as file:
             for yindex, line in enumerate(file):
                 for xindex, char in enumerate(line):
                     if char == "1":
@@ -69,13 +82,13 @@ class pacman:
                     elif char == "C":
                         self.coins.append(vec(xindex,yindex))
                     elif char == "P":
-                        self.player_starting_position = vec(xindex,yindex)
+                        self.player_starting_position = [xindex,yindex]
                     elif char in ["2","3","4","5"]:
-                        self.enemy_position.append(vec(xindex,yindex))
+                        self.enemy_position.append([xindex,yindex])
         
     def make_enemies(self):
         for index, position in enumerate(self.enemy_position):
-            self.enemies.append(Enemy(self,position, index))
+            self.enemies.append(Enemy(self,vec(position), index))
         
     #Esta funcion nos va a servir para poder definir en un array que es cada seccion del mapa,
     #es decir, si es pared, camino o si hay una moneda.
@@ -87,12 +100,13 @@ class pacman:
     def draw_map(self):
         #DIBUJAMOS LAS PAREDES
         for wall in self.walls:
-            pygame.draw.rect(self.background, (255,192,203),(wall.x*self.cell_width,wall.y*self.cell_height, self.cell_width, self.cell_height))
+            pygame.draw.rect(self.background, (self.r,self.g,self.b),(wall.x*self.cell_width,wall.y*self.cell_height, self.cell_width, self.cell_height))
         # for coin in self.coins:
         #     pygame.draw.rect(self.background, (167,179,34),(coin.x*self.cell_width,coin.y*self.cell_height, self.cell_width, self.cell_height))
     def draw_coins(self):
         for coin in self.coins:
             pygame.draw.circle(self.screen,(167,179,34),(int(coin.x*self.cell_width)+self.cell_width//2+TOP_BOTTOM_BUFFER//2,int(coin.y*self.cell_height)+self.cell_height//2+TOP_BOTTOM_BUFFER//2),5)
+    
     
 ############################## FUNCIONES INICIALES ##############################
 
@@ -134,6 +148,10 @@ class pacman:
                     self.player.move(vec(0,-1))
                 if event.key == pygame.K_DOWN:
                     self.player.move(vec(0,1))
+                if event.key == pygame.K_r:
+                    self.state = 'inicio'
+                    self.__init__()
+                    self.run()
                     
 
     
@@ -141,6 +159,12 @@ class pacman:
         self.player.update()
         for enemy in self.enemies:
             enemy.update()
+            
+        for enemy in self.enemies:
+            if enemy.grid_position == self.player.grid_position:
+                self.remove_life()
+        if self.coins == []:
+            self.state = "win"
     
     def juego_draw(self):
         self.screen.fill(BLACK)
@@ -161,4 +185,58 @@ class pacman:
             enemy.draw()
         pygame.display.update()
         
+    def remove_life(self):
+        self.player.lives -= 1        
+        if self.player.lives == 0:
+            self.state = "game over"
+        else:
+            self.player.grid_position = vec(self.player.starting_position)
+            self.player.pixel_position = self.player.get_pixel_position()
+            self.player.direction *= 0
+            for enemy in self.enemies:
+                enemy.grid_position = vec(enemy.starting_position)
+                enemy.pixel_position = enemy.get_pixel_position()
+                enemy.direction *= 0
+                
+                
+############################## FUNCIONES DEL FIN DE JUEGO ##############################
+
+    def game_over_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                self.__init__()
+                self.state = "juego"
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.running = False
+    def game_over_update(self):
+        pass
+    def game_over_draw(self):
+        self.screen.fill(BLACK)
+        self.draw_text("GAME OVER", self.screen, [WIDTH//2, 100], 36, RED, "arial", center=True)
+        self.draw_text('PRESIONE ESPACIO PARA JUGAR OTRA VEZ', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE, (170,132,58), START_FONT, center = True)
+        self.draw_text('PRESIONE ESCAPE PARA SALIR', self.screen, [WIDTH//2, HEIGHT//3], START_TEXT_SIZE, RED, START_FONT, center = True)
+        self.draw_text('SU PUNTAJE: {}'.format(self.player.current_score), self.screen, [WIDTH//2, HEIGHT//2+50], START_TEXT_SIZE, (49, 176, 170), START_FONT, center = True)
+        pygame.display.update()
         
+############################## FUNCIONES DE VICTORIA DE JUEGO ##############################
+
+    def win_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                self.__init__()
+                self.state = "juego"
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.running = False
+    def win_update(self):
+        pass
+    def win_draw(self):
+        self.screen.fill(BLACK)
+        self.draw_text("YOU WIN", self.screen, [WIDTH//2, 100], 36, (170,132,58), "arial", center=True)
+        self.draw_text('PRESIONE ESPACIO PARA JUGAR OTRA VEZ', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE, (170,132,58), START_FONT, center = True)
+        self.draw_text('PRESIONE ESCAPE PARA SALIR', self.screen, [WIDTH//2, HEIGHT//3], START_TEXT_SIZE, RED, START_FONT, center = True)
+        self.draw_text('SU PUNTAJE: {}'.format(self.player.current_score), self.screen, [WIDTH//2, HEIGHT//2+50], START_TEXT_SIZE, (49, 176, 170), START_FONT, center = True)
+        pygame.display.update()

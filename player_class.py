@@ -8,11 +8,13 @@ class Player:
         self.pacman = pacman
         self.grid_position = position
         self.pixel_position = self.get_pixel_position()
-        self.direction = vec(1,0)
+        self.direction = vec(0,0)
         self.stored_direction = None
         self.able_to_move = True
         self.current_score = 0
         self.speed = 2
+        self.lives = 3
+        self.starting_position = [position.x, position.y]
         #print(self.grid_position, self.pixel_position)
         
     
@@ -39,6 +41,11 @@ class Player:
         #Dibuja el rectangulo en la grilla
         # pygame.draw.rect(self.pacman.screen, RED, (self.grid_position[0]*self.pacman.cell_width+TOP_BOTTOM_BUFFER//2,self.grid_position[1]*self.pacman.cell_height+TOP_BOTTOM_BUFFER//2, self.pacman.cell_width,self.pacman.cell_height), 1)
         
+        #Drawing the lives
+        for x in range(self.lives):
+            pygame.draw.circle(self.pacman.screen, PLAYER_COLOR, (30 + 20*x, HEIGHT - 15),self.pacman.cell_width//2-3)
+        
+        
     def move(self, direction):
         self.stored_direction = direction
         
@@ -47,10 +54,10 @@ class Player:
     
     def time_to_move(self):
         if int(self.pixel_position.x+TOP_BOTTOM_BUFFER//2) % self.pacman.cell_width == 0:
-            if self.direction == vec(1,0) or self.direction == vec(-1,0):
+            if self.direction == vec(1,0) or self.direction == vec(-1,0) or self.direction == vec(0,0):
                 return True
         if int(self.pixel_position.y+TOP_BOTTOM_BUFFER//2) % self.pacman.cell_height == 0:
-            if self.direction == vec(0,1) or self.direction == vec(0,-1):
+            if self.direction == vec(0,1) or self.direction == vec(0,-1) or self.direction == vec(0,0):
                 return True
             
     def can_move(self):
