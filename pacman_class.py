@@ -72,7 +72,7 @@ class pacman:
         self.b = random.randint(1,255)
         # Abrimos el archivo con las coordenadas de cada pared
         #Creamos una lista en base a las coordenadas de las pared en formato vectorial
-        with open("walls{}.txt".format(random.randint(0,1)), 'r') as file:
+        with open("walls{}.txt".format(random.randint(0,4)), 'r') as file:
         #testwalls es un mapa de prueba para probar funcionalidad de victoria
         #with open("testwalls.txt", 'r') as file:
             for yindex, line in enumerate(file):
@@ -106,7 +106,6 @@ class pacman:
     def draw_coins(self):
         for coin in self.coins:
             pygame.draw.circle(self.screen,(167,179,34),(int(coin.x*self.cell_width)+self.cell_width//2+TOP_BOTTOM_BUFFER//2,int(coin.y*self.cell_height)+self.cell_height//2+TOP_BOTTOM_BUFFER//2),5)
-    
     
 ############################## FUNCIONES INICIALES ##############################
 
